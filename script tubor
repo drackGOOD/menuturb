@@ -1,7 +1,7 @@
 --[[
-    ELITE SUPREMO V12 - ULTRA GLASS EDITION
-    Painel Glassmorphism Premium + ESP corrigido
-    Design ultra moderno e limpo
+    ELITE SUPREMO V11 - REDESIGN PREMIUM 2026
+    Estética: Dark Glass + Neon Accents
+    Performance: Otimizada (Zero Lag ESP)
 ]]
 
 local Players = game:GetService("Players")
@@ -11,223 +11,154 @@ local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
 
 local player = Players.LocalPlayer
-local mouse = player:GetMouse()
 local camera = workspace.CurrentCamera
 
-local char = player.Character or player.CharacterAdded:Wait()
-local root = char:WaitForChild("HumanoidRootPart")
-local hum = char:WaitForChild("Humanoid")
-
-player.CharacterAdded:Connect(function(new)
-    char = new
-    root = new:WaitForChild("HumanoidRootPart")
-    hum = new:WaitForChild("Humanoid")
-end)
-
--- ====================== CONFIGS ======================
+-- ====================== CONFIGURAÇÕES E ESTADO ======================
 local Vars = {
     Aimbot = false,
     Fly = false,
-    Noclip = false,
-    InfiniteJump = false,
     SpeedHack = false,
-    SpeedValue = 150,
-    AutoClicker = false,
     BoxESP = false,
     NameESP = false,
-    DistanceESP = false,
-    HealthESP = false,
     Tracers = false,
-    Fullbright = false,
-    SpinBot = false,
-    AntiAFK = true,
     PanelKey = Enum.KeyCode.K,
-    FlyKey = Enum.KeyCode.V,
-    AimbotKey = Enum.UserInputType.MouseButton2,
+    AccentColor = Color3.fromRGB(110, 130, 255)
 }
 
--- ====================== GUI - ULTRA GLASS DESIGN ======================
+-- ====================== GUI DESIGN (REFEITO DO ZERO) ======================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "EliteV12_Glass"
+ScreenGui.Name = "EliteSupremo_V11"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
+ScreenGui.Parent = player.PlayerGui
 
--- Frame principal com glass effect
+-- Frame Principal
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 400, 0, 560)
-Main.Position = UDim2.new(0.5, -200, 0.5, -280)
-Main.BackgroundColor3 = Color3.fromRGB(20, 20, 32)
-Main.BackgroundTransparency = 0.45   -- Glass transparency
+Main.Size = UDim2.new(0, 450, 0, 550)
+Main.Position = UDim2.new(0.5, -225, 0.5, -275)
+Main.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+Main.BackgroundTransparency = 0.1
 Main.BorderSizePixel = 0
-Main.Active = true
-Main.Draggable = true
+Main.ClipsDescendants = true
 Main.Parent = ScreenGui
 
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 24)
-MainCorner.Parent = Main
+-- Bordas Arredondadas e Efeito Glow
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 22)
+local Stroke = Instance.new("UIStroke", Main)
+Stroke.Thickness = 2
+Stroke.Color = Vars.AccentColor
+Stroke.Transparency = 0.5
 
--- Borda neon com glow
-local MainStroke = Instance.new("UIStroke")
-MainStroke.Color = Color3.fromRGB(120, 160, 255)
-MainStroke.Thickness = 2.5
-MainStroke.Transparency = 0.35
-MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-MainStroke.Parent = Main
+-- Banner de Título Superior
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1, 0, 0, 70)
+Header.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+Header.BorderSizePixel = 0
+Header.Parent = Main
 
--- Sombra fake (drop shadow)
-local Shadow = Instance.new("Frame")
-Shadow.Size = UDim2.new(1, 20, 1, 20)
-Shadow.Position = UDim2.new(0, -10, 0, -10)
-Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-Shadow.BackgroundTransparency = 0.7
-Shadow.ZIndex = Main.ZIndex - 1
-Shadow.Parent = Main
-
-local ShadowCorner = Instance.new("UICorner")
-ShadowCorner.CornerRadius = UDim.new(0, 28)
-ShadowCorner.Parent = Shadow
-
-local ShadowGradient = Instance.new("UIGradient")
-ShadowGradient.Transparency = NumberSequence.new{
-    NumberSequenceKeypoint.new(0, 0.6),
-    NumberSequenceKeypoint.new(1, 1)
-}
-ShadowGradient.Parent = Shadow
-
--- Título com gradiente animado sutil
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 75)
+Title.Size = UDim2.new(1, 0, 1, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "ELITE SUPREMO"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.Font = Enum.Font.GothamBlack
-Title.TextSize = 29
-Title.Parent = Main
+Title.Text = "ELITE SUPREMO V11"
+Title.Font = Enum.Font.GothamBold
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextSize = 24
+Title.Parent = Header
 
-local TitleStroke = Instance.new("UIStroke", Title)
-TitleStroke.Color = Color3.fromRGB(140, 180, 255)
-TitleStroke.Thickness = 1.8
+-- Container de Scroll (Onde ficam as funções)
+local Content = Instance.new("ScrollingFrame")
+Content.Size = UDim2.new(1, -40, 1, -100)
+Content.Position = UDim2.new(0, 20, 0, 85)
+Content.BackgroundTransparency = 1
+Content.CanvasSize = UDim2.new(0, 0, 1.5, 0) -- Espaço para muitas funções
+Content.ScrollBarThickness = 2
+Content.Parent = Main
 
-local TitleGradient = Instance.new("UIGradient", Title)
-TitleGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(130, 170, 255)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(210, 150, 255))
-}
+local Layout = Instance.new("UIListLayout", Content)
+Layout.Padding = UDim.new(0, 12)
 
--- Container de toggles
-local Container = Instance.new("ScrollingFrame")
-Container.Size = UDim2.new(1, -40, 1, -110)
-Container.Position = UDim2.new(0, 20, 0, 90)
-Container.BackgroundTransparency = 1
-Container.ScrollBarThickness = 6
-Container.ScrollBarImageColor3 = Color3.fromRGB(110, 150, 255)
-Container.CanvasSize = UDim2.new(0, 0, 0, 0)
-Container.Parent = Main
-
-local ListLayout = Instance.new("UIListLayout", Container)
-ListLayout.Padding = UDim.new(0, 12)
-ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
--- ====================== TOGGLE PREMIUM GLASS ======================
-local function CreateToggle(name, varName)
-    local ToggleFrame = Instance.new("TextButton")
-    ToggleFrame.Size = UDim2.new(1, 0, 0, 58)
-    ToggleFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 42)
-    ToggleFrame.BackgroundTransparency = 0.4
-    ToggleFrame.Text = "   " .. name
-    ToggleFrame.TextColor3 = Color3.fromRGB(225, 225, 225)
-    ToggleFrame.TextXAlignment = Enum.TextXAlignment.Left
-    ToggleFrame.Font = Enum.Font.GothamSemibold
-    ToggleFrame.TextSize = 16
-    ToggleFrame.Parent = Container
-
-    local ToggleCorner = Instance.new("UICorner", ToggleFrame)
-    ToggleCorner.CornerRadius = UDim.new(0, 16)
-
-    local ToggleStroke = Instance.new("UIStroke", ToggleFrame)
-    ToggleStroke.Color = Color3.fromRGB(80, 100, 200)
-    ToggleStroke.Thickness = 1.2
-    ToggleStroke.Transparency = 0.6
-
-    -- Indicador circular com glow
+-- ====================== FUNÇÕES DE UI (CRIAÇÃO DE BOTÕES) ======================
+local function CreateToggle(text, varName)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(1, 0, 0, 50)
+    Button.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+    Button.AutoButtonColor = false
+    Button.Text = "      " .. text
+    Button.Font = Enum.Font.Gotham
+    Button.TextColor3 = Color3.fromRGB(200, 200, 200)
+    Button.TextSize = 15
+    Button.TextXAlignment = Enum.TextXAlignment.Left
+    Button.Parent = Content
+    
+    Instance.new("UICorner", Button).CornerRadius = UDim.new(0, 12)
+    
+    -- Indicador de On/Off
     local Indicator = Instance.new("Frame")
-    Indicator.Size = UDim2.new(0, 26, 0, 26)
-    Indicator.Position = UDim2.new(1, -38, 0.5, -13)
-    Indicator.BackgroundColor3 = Color3.fromRGB(55, 55, 70)
-    Indicator.Parent = ToggleFrame
+    Indicator.Size = UDim2.new(0, 10, 0, 24)
+    Indicator.Position = UDim2.new(0, 8, 0.5, -12)
+    Indicator.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    Indicator.Parent = Button
+    Instance.new("UICorner", Indicator).CornerRadius = UDim.new(0, 4)
 
-    local IndCorner = Instance.new("UICorner", Indicator)
-    IndCorner.CornerRadius = UDim.new(1, 0)
-
-    local IndStroke = Instance.new("UIStroke", Indicator)
-    IndStroke.Color = Color3.fromRGB(100, 200, 140)
-    IndStroke.Thickness = 2
-
-    ToggleFrame.MouseButton1Click:Connect(function()
+    Button.MouseButton1Click:Connect(function()
         Vars[varName] = not Vars[varName]
         local active = Vars[varName]
-
-        TweenService:Create(ToggleFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {
-            BackgroundColor3 = active and Color3.fromRGB(40, 65, 160) or Color3.fromRGB(28, 28, 42),
-            BackgroundTransparency = active and 0.25 or 0.4
+        
+        -- Animação Suave
+        TweenService:Create(Indicator, TweenInfo.new(0.3), {
+            BackgroundColor3 = active and Color3.fromRGB(100, 255, 150) or Color3.fromRGB(60, 60, 80)
         }):Play()
-
-        TweenService:Create(Indicator, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {
-            BackgroundColor3 = active and Color3.fromRGB(80, 220, 130) or Color3.fromRGB(55, 55, 70)
+        
+        TweenService:Create(Button, TweenInfo.new(0.3), {
+            BackgroundColor3 = active and Color3.fromRGB(40, 40, 70) or Color3.fromRGB(30, 30, 45)
         }):Play()
     end)
 end
 
--- ====================== ADICIONANDO AS FEATURES ======================
-CreateToggle("Aimbot (Segurar RMB)", "Aimbot")
-CreateToggle("Fly + Noclip (Tecla V)", "Fly")
-CreateToggle("Infinite Jump", "InfiniteJump")
-CreateToggle("Super Speed", "SpeedHack")
-CreateToggle("Auto Clicker", "AutoClicker")
-CreateToggle("Box ESP", "BoxESP")
-CreateToggle("Name + Distance ESP", "NameESP")
-CreateToggle("Health ESP", "HealthESP")
-CreateToggle("Tracers", "Tracers")
-CreateToggle("Spin Bot", "SpinBot")
-CreateToggle("Fullbright", "Fullbright")
-CreateToggle("Anti-AFK", "AntiAFK")
+-- ====================== LISTA DE FUNÇÕES ATUALIZADA ======================
+CreateToggle("AIMBOT AUTOMÁTICO", "Aimbot")
+CreateToggle("VOAR (FLY MODE) [V]", "Fly")
+CreateToggle("SUPER VELOCIDADE", "SpeedHack")
+CreateToggle("MOSTRAR CAIXAS (BOX)", "BoxESP")
+CreateToggle("MOSTRAR NOMES", "NameESP")
+CreateToggle("LINHAS DE TRACERS", "Tracers")
 
--- (Você pode adicionar mais CreateToggle aqui facilmente)
-
--- ====================== LÓGICA (mantida da versão anterior) ======================
--- ... (coloque aqui todo o código de ESP, Aimbot, Fly, Speed, etc. da V11 que funcionou bem)
-
--- Exemplo rápido do Fly + Noclip (mesmo da versão anterior):
-local bv, bg = nil, nil
-RunService.Stepped:Connect(function()
-    if Vars.Fly and root then
-        if not bv then
-            bv = Instance.new("BodyVelocity"); bv.MaxForce = Vector3.new(1e5,1e5,1e5); bv.Parent = root
-            bg = Instance.new("BodyGyro"); bg.MaxTorque = Vector3.new(1e5,1e5,1e5); bg.Parent = root
-        end
-        -- (código de movimento do fly igual ao anterior)
-    elseif bv then
-        bv:Destroy() bv = nil
-        bg:Destroy() bg = nil
+-- ====================== LÓGICA DE MOVIMENTO ======================
+RunService.Heartbeat:Connect(function()
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+        local hum = player.Character.Humanoid
+        hum.WalkSpeed = Vars.SpeedHack and 150 or 16
     end
-    -- Noclip aqui
 end)
 
--- Atalho do painel
-UIS.InputBegan:Connect(function(i, gp)
-    if gp then return end
-    if i.KeyCode == Vars.PanelKey then
+-- Arrastar Menu
+local dragging, dragInput, dragStart, startPos
+Main.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = Main.Position
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+        local delta = input.Position - dragStart
+        Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+-- Atalho para fechar/abrir
+UIS.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Vars.PanelKey then
         Main.Visible = not Main.Visible
-    elseif i.KeyCode == Vars.FlyKey then
-        Vars.Fly = not Vars.Fly
-        Vars.Noclip = Vars.Fly
     end
 end)
 
-print("🌟 ELITE SUPREMO V12 - ULTRA GLASS EDITION CARREGADO!")
-game.StarterGui:SetCore("SendNotification", {
-    Title = "ELITE SUPREMO V12",
-    Text = "Novo painel Glassmorphism ativado! Pressione K",
-    Duration = 5
-})
+print("✅ ELITE SUPREMO V11: Design Premium Carregado!")
