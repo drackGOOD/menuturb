@@ -1,189 +1,180 @@
---// PRO MULTI-TOOL V3 (ESTÁVEL & OTIMIZADO)
+--[[
+    ALL-IN-ONE PRO V4 (REMASTERED)
+    Atalhos:
+    [K] - Abrir/Fechar Menu
+    [ALT + Clique] - Teleporte para o Mouse
+    [Espaço/Shift] - Subir/Descer no Voo
+]]
+
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-
 local player = Players.LocalPlayer
-local mouse = player:GetMouse()
 local camera = workspace.CurrentCamera
+local mouse = player:GetMouse()
 
--- CONFIGS INICIAIS
-local settings = {
-    fly = false,
-    god = false,
-    esp = true,
-    speed = 70,
-    panelKey = Enum.KeyCode.K
+-- Vars de Estado
+local _G = {
+    Fly = false,
+    God = false,
+    ESP = true,
+    Speed = 80,
+    PanelVisible = true
 }
 
--- REFERÊNCIAS
-local char, humanoid, root
-local function syncChar(newChar)
+-- Sincronização de Personagem
+local char = player.Character or player.CharacterAdded:Wait()
+local root = char:WaitForChild("HumanoidRootPart")
+local hum = char:WaitForChild("Humanoid")
+
+player.CharacterAdded:Connect(function(newChar)
     char = newChar
-    humanoid = newChar:WaitForChild("Humanoid")
     root = newChar:WaitForChild("HumanoidRootPart")
+    hum = newChar:WaitForChild("Humanoid")
+end)
+
+-- UI PRINCIPAL
+local ScreenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+ScreenGui.ResetOnSpawn = false
+
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 250, 0, 380)
+Main.Position = UDim2.new(0.05, 0, 0.4, 0)
+Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Draggable = true -- Permite arrastar o painel
+
+local Corner = Instance.new("UICorner", Main)
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Text = "PREMIUM PANEL V4"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Font = Enum.Font.GothamBold
+Title.BackgroundTransparency = 1
+
+local Scroll = Instance.new("ScrollingFrame", Main)
+Scroll.Size = UDim2.new(0.9, 0, 0.8, 0)
+Scroll.Position = UDim2.new(0.05, 0, 0.15, 0)
+Scroll.BackgroundTransparency = 1
+Scroll.CanvasSize = UDim2.new(0, 0, 2, 0)
+Scroll.ScrollBarThickness = 2
+
+local Layout = Instance.new("UIListLayout", Scroll)
+Layout.Padding = UDim.new(0, 5)
+
+-- FUNÇÃO PARA BOTÕES
+local function createToggle(name, default, callback)
+    local btn = Instance.new("TextButton", Scroll)
+    btn.Size = UDim2.new(1, 0, 0, 35)
+    btn.BackgroundColor3 = default and Color3.fromRGB(40, 100, 40) or Color3.fromRGB(40, 40, 45)
+    btn.Text = name .. ": " .. (default and "ON" or "OFF")
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.Gotham
+    Instance.new("UICorner", btn)
+
+    local state = default
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        btn.Text = name .. ": " .. (state and "ON" or "OFF")
+        btn.BackgroundColor3 = state and Color3.fromRGB(40, 100, 40) or Color3.fromRGB(40, 40, 45)
+        callback(state)
+    end)
 end
-player.CharacterAdded:Connect(syncChar)
-if player.Character then syncChar(player.Character) end
 
--- DESIGN DA INTERFACE
-local gui = Instance.new("ScreenGui", player.PlayerGui)
-gui.ResetOnSpawn = false
-
-local main = Instance.new("Frame", gui)
-main.Name = "MainPanel"
-main.Size = UDim2.new(0, 240, 0, 360)
-main.Position = UDim2.new(0, 50, 0.5, -180)
-main.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-main.BorderSizePixel = 0
-main.Visible = true
-
-Instance.new("UICorner", main).CornerRadius = UDim.new(0, 10)
-
-local title = Instance.new("TextLabel", main)
-title.Size = UDim2.new(1, 0, 0, 40)
-title.Text = "PAINEL PRO [K]"
-title.TextColor3 = Color3.new(1, 1, 1)
-title.Font = Enum.Font.GothamBold
-title.BackgroundTransparency = 1
-
-local container = Instance.new("ScrollingFrame", main)
-container.Size = UDim2.new(0.9, 0, 0.85, 0)
-container.Position = UDim2.new(0.05, 0, 0.12, 0)
-container.BackgroundTransparency = 1
-container.CanvasSize = UDim2.new(0, 0, 0, 0)
-container.ScrollBarThickness = 3
-
-local layout = Instance.new("UIListLayout", container)
-layout.Padding = UDim.new(0, 6)
-
--- FUNÇÃO CRIAR BOTÃO
-local function makeBtn(txt, color, callback)
-    local b = Instance.new("TextButton", container)
-    b.Size = UDim2.new(1, 0, 0, 35)
-    b.BackgroundColor3 = color
-    b.Text = txt
-    b.TextColor3 = Color3.new(1, 1, 1)
-    b.Font = Enum.Font.GothamMedium
-    Instance.new("UICorner", b)
-    b.MouseButton1Click:Connect(callback)
-    return b
-end
-
--- FUNÇÕES CORE
-local flyBtn = makeBtn("VOO: OFF", Color3.fromRGB(50, 50, 60), function()
-    settings.fly = not settings.fly
-end)
-
-local godBtn = makeBtn("GOD: OFF", Color3.fromRGB(50, 50, 60), function()
-    settings.god = not settings.god
-end)
-
-local espBtn = makeBtn("ESP: ON", Color3.fromRGB(50, 50, 60), function()
-    settings.esp = not settings.esp
-end)
-
-local line = Instance.new("Frame", container)
-line.Size = UDim2.new(1, 0, 0, 2)
-line.BackgroundColor3 = Color3.new(1,1,1)
-line.BackgroundTransparency = 0.8
-
--- TELEPORTE LISTA (OTIMIZADO)
-local function updatePlayerList()
-    -- Remove apenas botões antigos de players (marcados via Name)
-    for _, child in pairs(container:GetChildren()) do
-        if child.Name == "PlayerTP" then child:Destroy() end
+-- SISTEMA DE VOO (ESTÁVEL)
+local bv, bg
+createToggle("VOAR", false, function(t)
+    _G.Fly = t
+    if t then
+        bv = Instance.new("BodyVelocity", root)
+        bg = Instance.new("BodyGyro", root)
+        bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+        bg.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
+    else
+        if bv then bv:Destroy() end
+        if bg then bg:Destroy() end
     end
-    
+end)
+
+createToggle("GOD MODE", false, function(t) _G.God = t end)
+createToggle("ESP", true, function(t) _G.ESP = t end)
+
+-- SEÇÃO DE TELEPORTE
+local Label = Instance.new("TextLabel", Scroll)
+Label.Size = UDim2.new(1, 0, 0, 20)
+Label.Text = "--- JOGADORES ---"
+Label.BackgroundTransparency = 1
+Label.TextColor3 = Color3.new(0.6, 0.6, 0.6)
+
+local function updateTPList()
+    for _, v in pairs(Scroll:GetChildren()) do
+        if v.Name == "TPBtn" then v:Destroy() end
+    end
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= player then
-            local tp = makeBtn(p.DisplayName, Color3.fromRGB(35, 45, 35), function()
+            local b = Instance.new("TextButton", Scroll)
+            b.Name = "TPBtn"
+            b.Size = UDim2.new(1, 0, 0, 30)
+            b.Text = "IR ATÉ: " .. p.DisplayName
+            b.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+            b.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+            Instance.new("UICorner", b)
+            b.MouseButton1Click:Connect(function()
                 if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                    root.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+                    root.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
                 end
             end)
-            tp.Name = "PlayerTP"
-            tp.TextSize = 11
         end
     end
-    container.CanvasSize = UDim2.new(0,0,0, layout.AbsoluteContentSize.Y + 10)
 end
 
--- VOO REGRAS
-local bv = Instance.new("BodyVelocity")
-local bg = Instance.new("BodyGyro")
-bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
-bg.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
-
-local ctrl = {f=0,b=0,l=0,r=0,u=0,d=0}
-UIS.InputBegan:Connect(function(i, g)
-    if g then return end
-    if i.KeyCode == settings.panelKey then main.Visible = not main.Visible end
-    if i.KeyCode == Enum.KeyCode.W then ctrl.f = 1 end
-    if i.KeyCode == Enum.KeyCode.S then ctrl.b = -1 end
-    if i.KeyCode == Enum.KeyCode.A then ctrl.l = -1 end
-    if i.KeyCode == Enum.KeyCode.D then ctrl.r = 1 end
-    if i.KeyCode == Enum.KeyCode.Space then ctrl.u = 1 end
-    if i.KeyCode == Enum.KeyCode.LeftShift then ctrl.d = -1 end
+-- CONTROLES DE VOO
+local move = {f=0, b=0, l=0, r=0, u=0, d=0}
+UIS.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.K then Main.Visible = not Main.Visible end
+    if input.KeyCode == Enum.KeyCode.W then move.f = 1 end
+    if input.KeyCode == Enum.KeyCode.S then move.b = -1 end
+    if input.KeyCode == Enum.KeyCode.A then move.l = -1 end
+    if input.KeyCode == Enum.KeyCode.D then move.r = 1 end
+    if input.KeyCode == Enum.KeyCode.Space then move.u = 1 end
+    if input.KeyCode == Enum.KeyCode.LeftShift then move.d = -1 end
 end)
 
-UIS.InputEnded:Connect(function(i)
-    if i.KeyCode == Enum.KeyCode.W then ctrl.f = 0 end
-    if i.KeyCode == Enum.KeyCode.S then ctrl.b = 0 end
-    if i.KeyCode == Enum.KeyCode.A then ctrl.l = 0 end
-    if i.KeyCode == Enum.KeyCode.D then ctrl.r = 0 end
-    if i.KeyCode == Enum.KeyCode.Space then ctrl.u = 0 end
-    if i.KeyCode == Enum.KeyCode.LeftShift then ctrl.d = 0 end
+UIS.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.W then move.f = 0 end
+    if input.KeyCode == Enum.KeyCode.S then move.b = 0 end
+    if input.KeyCode == Enum.KeyCode.A then move.l = 0 end
+    if input.KeyCode == Enum.KeyCode.D then move.r = 0 end
+    if input.KeyCode == Enum.KeyCode.Space then move.u = 0 end
+    if input.KeyCode == Enum.KeyCode.LeftShift then move.d = 0 end
 end)
 
--- ALT + CLICK TP
+-- CLICK TP
 mouse.Button1Down:Connect(function()
     if UIS:IsKeyDown(Enum.KeyCode.LeftAlt) then
-        root.CFrame = CFrame.new(mouse.Hit.p + Vector3.new(0,3,0))
+        root.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0))
     end
 end)
 
--- ESP DRAWING API
-local esps = {}
-local function createESP(p)
-    local box = Drawing.new("Square"); box.Thickness = 1; box.Filled = false; box.Color = Color3.new(0,1,0)
-    local txt = Drawing.new("Text"); txt.Size = 14; txt.Center = true; txt.Outline = true; txt.Color = Color3.new(1,1,1)
-    esps[p] = {box = box, txt = txt}
-end
-Players.PlayerAdded:Connect(createESP)
-for _, p in pairs(Players:GetPlayers()) do if p ~= player then createESP(p) end end
-
--- LOOP DE RENDERIZAÇÃO
+-- LOOP PRINCIPAL
 RunService.RenderStepped:Connect(function()
-    flyBtn.Text = "VOO: "..(settings.fly and "ON" or "OFF")
-    godBtn.Text = "GOD: "..(settings.god and "ON" or "OFF")
-    espBtn.Text = "ESP: "..(settings.esp and "ON" or "OFF")
-
-    if settings.god and humanoid then humanoid.Health = humanoid.MaxHealth end
-
-    if settings.fly and root then
-        bg.Parent = root; bv.Parent = root
+    if _G.God and hum then hum.Health = hum.MaxHealth end
+    
+    if _G.Fly and root and bv and bg then
         bg.CFrame = camera.CFrame
-        local dir = camera.CFrame.LookVector * (ctrl.f + ctrl.b) + camera.CFrame.RightVector * (ctrl.l + ctrl.r) + camera.CFrame.UpVector * (ctrl.u + ctrl.d)
-        bv.Velocity = dir * settings.speed
-    else
-        bg.Parent = nil; bv.Parent = nil
-    end
-
-    for p, d in pairs(esps) do
-        if settings.esp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            local v, on = camera:WorldToViewportPoint(p.Character.HumanoidRootPart.Position)
-            if on then
-                d.box.Visible = true; d.box.Size = Vector2.new(2000/v.Z, 2500/v.Z)
-                d.box.Position = Vector2.new(v.X - d.box.Size.X/2, v.Y - d.box.Size.Y/2)
-                d.txt.Visible = true; d.txt.Position = Vector2.new(v.X, v.Y - d.box.Size.Y/2 - 15)
-                d.txt.Text = p.Name.." ["..math.floor(v.Z).."m]"
-            else d.box.Visible = false; d.txt.Visible = false end
-        else d.box.Visible = false; d.txt.Visible = false end
+        local comb = camera.CFrame.LookVector * (move.f + move.b) + camera.CFrame.RightVector * (move.l + move.r) + camera.CFrame.UpVector * (move.u + move.d)
+        bv.Velocity = comb * _G.Speed
     end
 end)
 
--- ATUALIZAÇÃO DA LISTA (A CADA 5 SEG)
+-- ATUALIZADOR DE LISTA
 task.spawn(function()
-    while task.wait(5) do updatePlayerList() end
+    while true do
+        updateTPList()
+        task.wait(5)
+    end
 end)
+
+print("Painel Carregado com Sucesso!")
