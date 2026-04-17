@@ -1,181 +1,88 @@
---// ALL IN ONE PRO (VOO + ESP + TP + PAINEL)
-
+--// PRO MULTI-TOOL V2 (Otimizado)
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 local camera = workspace.CurrentCamera
 
--- CHAR
-local function getChar()
-    return player.Character or player.CharacterAdded:Wait()
+-- CONFIGURAÇÕES
+local state = {
+    flying = false,
+    speed = 70,
+    god = false,
+    esp = true,
+    visible = true
+}
+
+-- REFERÊNCIAS DE PERSONAGEM
+local char, humanoid, root
+local function updateVars(newChar)
+    char = newChar
+    humanoid = char:WaitForChild("Humanoid")
+    root = char:WaitForChild("HumanoidRootPart")
 end
+player.CharacterAdded:Connect(updateVars)
+if player.Character then updateVars(player.Character) end
 
-local char = getChar()
-local humanoid = char:WaitForChild("Humanoid")
-local root = char:WaitForChild("HumanoidRootPart")
-
-player.CharacterAdded:Connect(function(c)
-    char = c
-    humanoid = c:WaitForChild("Humanoid")
-    root = c:WaitForChild("HumanoidRootPart")
-end)
-
--- CONFIG
-local flying = false
-local speed = 60
-local god = false
-local espOn = true
-local panelOpen = true
-
--- GUI
+-- DESIGN DA UI (MAIS MODERNO)
 local gui = Instance.new("ScreenGui", player.PlayerGui)
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0,260,0,350)
-frame.Position = UDim2.new(0,20,0,120)
-frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+gui.ResetOnSpawn = false
 
-local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1,0,0,30)
-title.Text = "PAINEL PRO"
-title.TextColor3 = Color3.new(1,1,1)
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 220, 0, 380)
+main.Position = UDim2.new(0, 30, 0.5, -190)
+main.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+main.BorderSizePixel = 0
+
+local corner = Instance.new("UICorner", main)
+corner.CornerRadius = UDim.new(0, 8)
+
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1, 0, 0, 40)
+title.Text = "PREMIUM PANEL"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.GothamBold
 title.BackgroundTransparency = 1
 
--- BOTÕES
-local flyBtn = Instance.new("TextButton", frame)
-flyBtn.Position = UDim2.new(0,0,0,35)
-flyBtn.Size = UDim2.new(1,0,0,30)
-flyBtn.Text = "VOAR: OFF"
+local container = Instance.new("ScrollingFrame", main)
+container.Size = UDim2.new(0.9, 0, 0.85, 0)
+container.Position = UDim2.new(0.05, 0, 0.12, 0)
+container.BackgroundTransparency = 1
+container.ScrollBarThickness = 2
 
-local godBtn = Instance.new("TextButton", frame)
-godBtn.Position = UDim2.new(0,0,0,70)
-godBtn.Size = UDim2.new(1,0,0,30)
-godBtn.Text = "GOD: OFF"
+local layout = Instance.new("UIListLayout", container)
+layout.Padding = UDim.new(0, 5)
 
-local espBtn = Instance.new("TextButton", frame)
-espBtn.Position = UDim2.new(0,0,0,105)
-espBtn.Size = UDim2.new(1,0,0,30)
-espBtn.Text = "ESP: ON"
+-- FUNÇÃO PARA CRIAR BOTÕES ESTILIZADOS
+local function createButton(name, callback)
+    local btn = Instance.new("TextButton", container)
+    btn.Size = UDim2.new(1, 0, 0, 35)
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 12
+    btn.AutoButtonColor = true
+    
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+    btn.MouseButton1Click:Connect(callback)
+    return btn
+end
 
--- LISTA PLAYERS
-local scroll = Instance.new("ScrollingFrame", frame)
-scroll.Position = UDim2.new(0,0,0,140)
-scroll.Size = UDim2.new(1,0,0,200)
-scroll.CanvasSize = UDim2.new(0,0,0,0)
-
-local layout = Instance.new("UIListLayout", scroll)
-
--- VOO
+-- SISTEMA DE VOO
 local bv = Instance.new("BodyVelocity")
-bv.MaxForce = Vector3.new(999999,999999,999999)
-
 local bg = Instance.new("BodyGyro")
-bg.MaxTorque = Vector3.new(999999,999999,999999)
+bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+bg.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
 
-local control = {f=0,b=0,l=0,r=0,u=0,d=0}
+local ctrl = {f = 0, b = 0, l = 0, r = 0, q = 0, e = 0}
 
--- ESP
-local espObjects = {}
-
-local function createESP(plr)
-    if plr == player then return end
-
-    local box = Drawing.new("Square")
-    box.Color = Color3.fromRGB(0,255,0)
-    box.Thickness = 1
-    box.Filled = false
-
-    local text = Drawing.new("Text")
-    text.Size = 13
-    text.Center = true
-    text.Outline = true
-
-    espObjects[plr] = {box=box,text=text}
-end
-
-local function removeESP(plr)
-    if espObjects[plr] then
-        espObjects[plr].box:Remove()
-        espObjects[plr].text:Remove()
-        espObjects[plr] = nil
-    end
-end
-
-for _,p in pairs(Players:GetPlayers()) do createESP(p) end
-Players.PlayerAdded:Connect(createESP)
-Players.PlayerRemoving:Connect(removeESP)
-
--- LISTA
-local function updateList()
-    scroll:ClearAllChildren()
-    layout.Parent = scroll
-
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= player then
-            local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(1,0,0,30)
-            btn.Text = plr.Name
-            btn.Parent = scroll
-
-            btn.MouseButton1Click:Connect(function()
-                if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                    root.CFrame = plr.Character.HumanoidRootPart.CFrame + Vector3.new(0,5,0)
-                end
-            end)
-        end
-    end
-
-    scroll.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y)
-end
-
-task.spawn(function()
-    while true do
-        updateList()
-        task.wait(2)
-    end
-end)
-
--- INPUT
-UIS.InputBegan:Connect(function(input,gpe)
-    if gpe then return end
-
-    if input.KeyCode == Enum.KeyCode.K then
-        panelOpen = not panelOpen
-        frame.Visible = panelOpen
-    end
-
-    if input.KeyCode == Enum.KeyCode.W then control.f=1 end
-    if input.KeyCode == Enum.KeyCode.S then control.b=-1 end
-    if input.KeyCode == Enum.KeyCode.A then control.l=-1 end
-    if input.KeyCode == Enum.KeyCode.D then control.r=1 end
-    if input.KeyCode == Enum.KeyCode.Space then control.u=1 end
-    if input.KeyCode == Enum.KeyCode.LeftControl then control.d=-1 end
-end)
-
-UIS.InputEnded:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.W then control.f=0 end
-    if input.KeyCode == Enum.KeyCode.S then control.b=0 end
-    if input.KeyCode == Enum.KeyCode.A then control.l=0 end
-    if input.KeyCode == Enum.KeyCode.D then control.r=0 end
-    if input.KeyCode == Enum.KeyCode.Space then control.u=0 end
-    if input.KeyCode == Enum.KeyCode.LeftControl then control.d=0 end
-end)
-
--- TELEPORT ALT CLICK
-mouse.Button1Down:Connect(function()
-    if UIS:IsKeyDown(Enum.KeyCode.LeftAlt) then
-        root.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0,5,0))
-    end
-end)
-
--- BOTÕES
-flyBtn.MouseButton1Click:Connect(function()
-    flying = not flying
-    flyBtn.Text = "VOAR: "..(flying and "ON" or "OFF")
-
-    if flying then
+local flyBtn = createButton("Fly: OFF", function()
+    state.flying = not state.flying
+    if state.flying then
         bv.Parent = root
         bg.Parent = root
     else
@@ -184,66 +91,136 @@ flyBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-godBtn.MouseButton1Click:Connect(function()
-    god = not god
-    godBtn.Text = "GOD: "..(god and "ON" or "OFF")
-end)
+-- SISTEMA ESP
+local espData = {}
+local function drawESP(p)
+    if p == player then return end
+    local box = Drawing.new("Square")
+    box.Thickness = 1
+    box.Filled = false
+    box.Color = Color3.new(1, 0, 0)
+    
+    local name = Drawing.new("Text")
+    name.Size = 14
+    name.Center = true
+    name.Outline = true
+    name.Color = Color3.new(1, 1, 1)
+    
+    espData[p] = {box = box, name = name}
+end
 
-espBtn.MouseButton1Click:Connect(function()
-    espOn = not espOn
-    espBtn.Text = "ESP: "..(espOn and "ON" or "OFF")
-end)
-
--- LOOP
-RunService.RenderStepped:Connect(function()
-
-    -- GODMODE FAKE
-    if god and humanoid then
-        humanoid.Health = humanoid.MaxHealth
+Players.PlayerAdded:Connect(drawESP)
+Players.PlayerRemoving:Connect(function(p)
+    if espData[p] then
+        espData[p].box:Remove()
+        espData[p].name:Remove()
+        espData[p] = nil
     end
+end)
+for _, p in pairs(Players:GetPlayers()) do drawESP(p) end
 
-    -- VOO
-    if flying then
-        local dir = Vector3.new(
-            control.l + control.r,
-            control.u + control.d,
-            control.f + control.b
-        )
-
-        if dir.Magnitude > 0 then
-            bv.Velocity = camera.CFrame:VectorToWorldSpace(dir) * speed
-        else
-            bv.Velocity = Vector3.new(0,0,0)
+-- TELEPORT LIST
+local function refreshPlayerList()
+    -- Limpar apenas botões de jogadores, não os de função
+    for _, v in pairs(container:GetChildren()) do
+        if v:IsA("TextButton") and not v.Name:find("Control") then
+            v:Destroy()
         end
-
-        bg.CFrame = camera.CFrame
     end
 
-    -- ESP
-    if espOn then
-        for plr,esp in pairs(espObjects) do
-            local char = plr.Character
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                local pos,onScreen = camera:WorldToViewportPoint(char.HumanoidRootPart.Position)
-
-                if onScreen then
-                    esp.box.Size = Vector2.new(40,60)
-                    esp.box.Position = Vector2.new(pos.X-20,pos.Y-30)
-                    esp.box.Visible = true
-
-                    esp.text.Position = Vector2.new(pos.X,pos.Y-40)
-                    esp.text.Text = plr.Name
-                    esp.text.Visible = true
-                else
-                    esp.box.Visible = false
-                    esp.text.Visible = false
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= player then
+            local pBtn = createButton("TP: " .. p.DisplayName, function()
+                if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    root.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
                 end
+            end)
+            pBtn.BackgroundColor3 = Color3.fromRGB(35, 60, 45)
+        end
+    end
+end
+
+-- CONTROLES DE ENTRADA
+UIS.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.W then ctrl.f = 1
+    elseif input.KeyCode == Enum.KeyCode.S then ctrl.b = -1
+    elseif input.KeyCode == Enum.KeyCode.A then ctrl.l = -1
+    elseif input.KeyCode == Enum.KeyCode.D then ctrl.r = -1
+    elseif input.KeyCode == Enum.KeyCode.E then ctrl.q = 1
+    elseif input.KeyCode == Enum.KeyCode.Q then ctrl.e = -1
+    elseif input.KeyCode == Enum.KeyCode.RightControl then
+        main.Visible = not main.Visible
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.W then ctrl.f = 0
+    elseif input.KeyCode == Enum.KeyCode.S then ctrl.b = 0
+    elseif input.KeyCode == Enum.KeyCode.A then ctrl.l = 0
+    elseif input.KeyCode == Enum.KeyCode.D then ctrl.r = 0
+    elseif input.KeyCode == Enum.KeyCode.E then ctrl.q = 0
+    elseif input.KeyCode == Enum.KeyCode.Q then ctrl.e = 0
+    end
+end)
+
+-- CLICK TELEPORT (ALT + CLICK)
+mouse.Button1Down:Connect(function()
+    if UIS:IsKeyDown(Enum.KeyCode.LeftAlt) then
+        root.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0))
+    end
+end)
+
+-- LOOP PRINCIPAL (RENDER STEPPED)
+RunService.RenderStepped:Connect(function()
+    flyBtn.Text = "Fly: " .. (state.flying and "ON" or "OFF")
+    
+    -- Lógica de Voo
+    if state.flying and root then
+        bg.CFrame = camera.CFrame
+        local moveDir = camera.CFrame.LookVector * (ctrl.f + ctrl.b) + 
+                        camera.CFrame.RightVector * (ctrl.l + ctrl.r) + 
+                        camera.CFrame.UpVector * (ctrl.q + ctrl.e)
+        
+        if moveDir.Magnitude > 0 then
+            bv.Velocity = moveDir.Unit * state.speed
+        else
+            bv.Velocity = Vector3.new(0, 0, 0)
+        end
+    end
+
+    -- Lógica ESP Otimizada
+    for p, draw in pairs(espData) do
+        if state.esp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = p.Character.HumanoidRootPart
+            local pos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+            
+            if onScreen then
+                local dist = (camera.CFrame.Position - hrp.Position).Magnitude
+                local size = 2000 / dist -- Escala baseada na distância
+                
+                draw.box.Size = Vector2.new(size, size * 1.5)
+                draw.box.Position = Vector2.new(pos.X - size/2, pos.Y - size/1.5)
+                draw.box.Visible = true
+                
+                draw.name.Text = string.format("%s [%dm]", p.Name, math.floor(dist))
+                draw.name.Position = Vector2.new(pos.X, pos.Y + (size/2))
+                draw.name.Visible = true
+            else
+                draw.box.Visible = false
+                draw.name.Visible = false
             end
+        else
+            draw.box.Visible = false
+            draw.name.Visible = false
         end
-    else
-        for _,esp in pairs(espObjects) do
-            esp.box.Visible = false
-            esp.text.Visible = false
-        end
+    end
+end)
+
+-- Atualiza lista de players a cada 5 segundos
+task.spawn(function()
+    while true do
+        refreshPlayerList()
+        task.wait(5)
     end
 end)
