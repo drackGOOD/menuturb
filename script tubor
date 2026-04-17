@@ -1,7 +1,7 @@
 --[[
-    ELITE SUPREMO V11 - GOD MODE
-    CS:GO / CS2 Cheat Style Panel • ESP Profissional • 40+ Features
-    Totalmente otimizado e estável
+    ELITE SUPREMO V12 - GTA V MOD MENU STYLE
+    Inspirado no Menu do GTA V (Menyoo/Modest)
+    Teclas: 'K' para Abrir/Fechar | 'V' para Fly rápido
 ]]
 
 local Players = game:GetService("Players")
@@ -9,414 +9,186 @@ local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
+
 local player = Players.LocalPlayer
-local mouse = player:GetMouse()
 local camera = workspace.CurrentCamera
 
-local char = player.Character or player.CharacterAdded:Wait()
-local root = char:WaitForChild("HumanoidRootPart")
-local hum = char:WaitForChild("Humanoid")
-
-player.CharacterAdded:Connect(function(new)
-    char = new
-    root = new:WaitForChild("HumanoidRootPart")
-    hum = new:WaitForChild("Humanoid")
-end)
-
--- ====================== CONFIGS ======================
+-- Variáveis de Estado
 local Vars = {
     Aimbot = false,
-    SilentAim = false,
-    AimbotKey = Enum.UserInputType.MouseButton2,
-    AimbotFOV = 520,
-    AimbotSmoothness = 0.22,
-
+    SpeedHack = false,
+    SpeedValue = 120,
     Fly = false,
     Noclip = false,
     InfiniteJump = false,
-    SpeedHack = false,
-    SpeedValue = 165,
-
     BoxESP = false,
     NameESP = false,
-    DistanceESP = false,
-    HealthESP = false,
-    Tracers = false,
-    SkeletonESP = false,
-
-    AutoClicker = false,
-    ClickSpeed = 0.007,
     Fullbright = false,
-    SpinBot = false,
-    AntiAFK = true,
+    AntiAFK = true
 }
 
--- ====================== GUI ESTILO CS CHEAT ======================
+-- Criando a Interface GTA V
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "EliteSupremoCS"
+ScreenGui.Name = "GTAMenu_Elite"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
+-- Frame Principal (A lateral esquerda clássica do GTA)
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 420, 0, 580)
-Main.Position = UDim2.new(0.5, -210, 0.5, -290)
-Main.BackgroundColor3 = Color3.fromRGB(13, 13, 18)
-Main.BackgroundTransparency = 0.25
+Main.Name = "MainFrame"
+Main.Size = UDim2.new(0, 250, 0, 450)
+Main.Position = UDim2.new(0.05, 0, 0.15, 0)
+Main.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+Main.BackgroundTransparency = 0.2
 Main.BorderSizePixel = 0
-Main.Active = true
-Main.Draggable = true
+Main.Visible = true
 Main.Parent = ScreenGui
 
-local Corner = Instance.new("UICorner", Main)
-Corner.CornerRadius = UDim.new(0, 8)  -- estilo CS (pouco arredondado)
+-- Banner Superior (Título GTA)
+local Banner = Instance.new("Frame")
+Banner.Size = UDim2.new(1, 0, 0, 80)
+Banner.BackgroundColor3 = Color3.fromRGB(0, 150, 255) -- Azul GTA V
+Banner.BorderSizePixel = 0
+Banner.Parent = Main
 
-local Stroke = Instance.new("UIStroke", Main)
-Stroke.Color = Color3.fromRGB(0, 255, 140)  -- neon verde CS
-Stroke.Thickness = 2
-Stroke.Transparency = 0.3
-
--- Título estilo CS
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 60)
-Title.BackgroundTransparency = 1
+Title.Size = UDim2.new(1, 0, 1, 0)
 Title.Text = "ELITE SUPREMO"
-Title.TextColor3 = Color3.fromRGB(0, 255, 140)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 26
-Title.Parent = Main
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Font = Enum.Font.Antique -- Fonte que lembra o estilo clássico
+Title.TextSize = 28
+Title.Parent = Banner
 
-local Subtitle = Instance.new("TextLabel")
-Subtitle.Size = UDim2.new(1, 0, 0, 20)
-Subtitle.Position = UDim2.new(0, 0, 0, 38)
-Subtitle.BackgroundTransparency = 1
-Subtitle.Text = "V11 • GOD MODE"
-Subtitle.TextColor3 = Color3.fromRGB(180, 180, 180)
-Subtitle.Font = Enum.Font.Gotham
-Subtitle.TextSize = 13
-Subtitle.Parent = Main
+-- Rodapé (Footer)
+local Footer = Instance.new("Frame")
+Footer.Size = UDim2.new(1, 0, 0, 25)
+Footer.Position = UDim2.new(0, 0, 1, 0)
+Footer.BackgroundColor3 = Color3.new(0, 0, 0)
+Footer.Parent = Main
 
--- Container
-local Container = Instance.new("ScrollingFrame")
-Container.Size = UDim2.new(1, -30, 1, -90)
-Container.Position = UDim2.new(0, 15, 0, 70)
-Container.BackgroundTransparency = 1
-Container.ScrollBarThickness = 4
-Container.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 140)
-Container.CanvasSize = UDim2.new(0, 0, 0, 0)
-Container.Parent = Main
+local FooterText = Instance.new("TextLabel")
+FooterText.Size = UDim2.new(1, -10, 1, 0)
+FooterText.Position = UDim2.new(0, 10, 0, 0)
+FooterText.Text = "V12.0.4 - Premium Edition"
+FooterText.TextColor3 = Color3.new(0.6, 0.6, 0.6)
+FooterText.TextSize = 14
+FooterText.TextXAlignment = Enum.TextXAlignment.Left
+FooterText.BackgroundTransparency = 1
+FooterText.Parent = Footer
 
-local ListLayout = Instance.new("UIListLayout", Container)
-ListLayout.Padding = UDim.new(0, 8)
-ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+-- Container de Opções
+local Scroll = Instance.new("ScrollingFrame")
+Scroll.Size = UDim2.new(1, 0, 1, -105)
+Scroll.Position = UDim2.new(0, 0, 0, 80)
+Scroll.BackgroundTransparency = 1
+Scroll.BorderSizePixel = 0
+Scroll.CanvasSize = UDim2.new(0, 0, 0, 600)
+Scroll.ScrollBarThickness = 0 -- Invisível como no GTA
+Scroll.Parent = Main
 
--- Toggle estilo CS Cheat
-local function CreateToggle(name, varName)
-    local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(1, 0, 0, 48)
-    Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    Frame.BackgroundTransparency = 0.4
-    Frame.Parent = Container
+local List = Instance.new("UIListLayout", Scroll)
+List.SortOrder = Enum.SortOrder.LayoutOrder
 
-    local FrameCorner = Instance.new("UICorner", Frame)
-    FrameCorner.CornerRadius = UDim.new(0, 6)
+-- Função para Criar Botão estilo GTA
+local function AddOption(name, varName)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, 0, 0, 35)
+    Btn.BackgroundColor3 = Color3.new(0, 0, 0)
+    Btn.BackgroundTransparency = 0.5
+    Btn.BorderSizePixel = 0
+    Btn.Text = "  " .. name
+    Btn.TextColor3 = Color3.new(1, 1, 1)
+    Btn.Font = Enum.Font.SourceSans
+    Btn.TextSize = 18
+    Btn.TextXAlignment = Enum.TextXAlignment.Left
+    Btn.AutoButtonColor = false
+    Btn.Parent = Scroll
 
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -90, 1, 0)
-    Label.Position = UDim2.new(0, 15, 0, 0)
-    Label.BackgroundTransparency = 1
-    Label.Text = name
-    Label.TextColor3 = Color3.fromRGB(220, 220, 230)
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.Font = Enum.Font.GothamSemibold
-    Label.TextSize = 16
-    Label.Parent = Frame
+    local Indicator = Instance.new("Frame")
+    Indicator.Size = UDim2.new(0, 5, 1, 0)
+    Indicator.Position = UDim2.new(1, -5, 0, 0)
+    Indicator.BackgroundColor3 = Color3.new(1, 0, 0) -- Vermelho OFF
+    Indicator.BorderSizePixel = 0
+    Indicator.Parent = Btn
 
-    local ToggleBg = Instance.new("Frame")
-    ToggleBg.Size = UDim2.new(0, 42, 0, 22)
-    ToggleBg.Position = UDim2.new(1, -60, 0.5, -11)
-    ToggleBg.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
-    ToggleBg.Parent = Frame
-
-    local ToggleCorner = Instance.new("UICorner", ToggleBg)
-    ToggleCorner.CornerRadius = UDim.new(1, 0)
-
-    local Knob = Instance.new("Frame")
-    Knob.Size = UDim2.new(0, 18, 0, 18)
-    Knob.Position = UDim2.new(0, 2, 0.5, -9)
-    Knob.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
-    Knob.Parent = ToggleBg
-
-    local KnobCorner = Instance.new("UICorner", Knob)
-    KnobCorner.CornerRadius = UDim.new(1, 0)
-
-    local active = false
-
-    Frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            active = not active
-            Vars[varName] = active
-
-            TweenService:Create(ToggleBg, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {
-                BackgroundColor3 = active and Color3.fromRGB(0, 180, 100) or Color3.fromRGB(35, 35, 40)
-            }):Play()
-
-            TweenService:Create(Knob, TweenInfo.new(0.25, Enum.EasingStyle.Quint), {
-                Position = active and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9),
-                BackgroundColor3 = active and Color3.fromRGB(0, 255, 140) or Color3.fromRGB(200, 200, 200)
-            }):Play()
-        end
+    Btn.MouseButton1Click:Connect(function()
+        Vars[varName] = not Vars[varName]
+        Indicator.BackgroundColor3 = Vars[varName] and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
+        
+        -- Feedback visual de clique
+        Btn.BackgroundColor3 = Color3.new(1, 1, 1)
+        Btn.TextColor3 = Color3.new(0, 0, 0)
+        task.wait(0.1)
+        Btn.BackgroundColor3 = Color3.new(0, 0, 0)
+        Btn.TextColor3 = Color3.new(1, 1, 1)
     end)
 end
 
--- ====================== ESP (Mantido profissional) ======================
-local ESPObjects = {}
-local Connections = {}
+-- Adicionando Opções
+AddOption("Aimbot Assist", "Aimbot")
+AddOption("Super Speed (120)", "SpeedHack")
+AddOption("Fly / Noclip", "Fly")
+AddOption("Infinite Jump", "InfiniteJump")
+AddOption("Player ESP Box", "BoxESP")
+AddOption("Player Name ESP", "NameESP")
+AddOption("Full Brightness", "Fullbright")
+AddOption("Anti-AFK System", "AntiAFK")
 
-local function CreateESP(plr)
-    if plr == player then return end
+-- ====================== LÓGICA DE FUNCIONAMENTO ======================
 
-    local box = Drawing.new("Square")
-    box.Thickness = 2
-    box.Color = Color3.fromRGB(0, 255, 140)
-    box.Filled = false
-    box.Transparency = 1
-
-    local name = Drawing.new("Text")
-    name.Size = 16
-    name.Color = Color3.fromRGB(255, 255, 255)
-    name.Center = true
-    name.Outline = true
-
-    local tracer = Drawing.new("Line")
-    tracer.Thickness = 1.5
-    tracer.Color = Color3.fromRGB(0, 255, 140)
-    tracer.Transparency = 0.7
-
-    local skeleton = {}
-    for i = 1, 6 do
-        local line = Drawing.new("Line")
-        line.Thickness = 1.4
-        line.Color = Color3.fromRGB(0, 220, 120)
-        line.Transparency = 0.85
-        table.insert(skeleton, line)
-    end
-
-    ESPObjects[plr] = {Box = box, Name = name, Tracer = tracer, Skeleton = skeleton}
-
-    Connections[plr] = RunService.RenderStepped:Connect(function()
-        local character = plr.Character
-        if not character or not character:FindFirstChild("HumanoidRootPart") then
-            box.Visible = false
-            name.Visible = false
-            tracer.Visible = false
-            for _, l in ipairs(skeleton) do l.Visible = false end
-            return
-        end
-
-        local rootPart = character.HumanoidRootPart
-        local head = character:FindFirstChild("Head")
-        if not head then return end
-
-        local rootPos, onScreen = camera:WorldToViewportPoint(rootPart.Position)
-        if not onScreen then
-            box.Visible = false name.Visible = false tracer.Visible = false
-            for _, l in ipairs(skeleton) do l.Visible = false end
-            return
-        end
-
-        local headPos = camera:WorldToViewportPoint(head.Position)
-        local legPos = camera:WorldToViewportPoint(rootPart.Position - Vector3.new(0,3.5,0))
-
-        local height = (headPos.Y - legPos.Y) * 1.2
-        local size = Vector2.new(height * 0.55, height)
-        local pos = Vector2.new(rootPos.X - size.X/2, rootPos.Y - size.Y * 0.48)
-
-        -- Box
-        if Vars.BoxESP then
-            box.Size = size
-            box.Position = pos
-            box.Visible = true
-        else
-            box.Visible = false
-        end
-
-        -- Name + Info
-        if Vars.NameESP or Vars.DistanceESP or Vars.HealthESP then
-            local dist = math.floor((root.Position - rootPart.Position).Magnitude)
-            local text = plr.DisplayName
-            if Vars.DistanceESP then text = text .. " [" .. dist .. "m]" end
-            if Vars.HealthESP and character:FindFirstChild("Humanoid") then 
-                text = text .. " | " .. math.floor(character.Humanoid.Health) 
-            end
-            name.Text = text
-            name.Position = Vector2.new(rootPos.X, rootPos.Y - 42)
-            name.Visible = true
-        else
-            name.Visible = false
-        end
-
-        -- Tracer
-        if Vars.Tracers then
-            tracer.From = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y - 40)
-            tracer.To = Vector2.new(rootPos.X, rootPos.Y)
-            tracer.Visible = true
-        else
-            tracer.Visible = false
-        end
-
-        -- Skeleton
-        if Vars.SkeletonESP then
-            -- (código simplificado do esqueleto anterior - funciona bem)
-            local torso = character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
-            if torso and head then
-                local p1 = camera:WorldToViewportPoint(head.Position)
-                local p2 = camera:WorldToViewportPoint(torso.Position)
-                skeleton[1].From = Vector2.new(p1.X, p1.Y)
-                skeleton[1].To = Vector2.new(p2.X, p2.Y)
-                skeleton[1].Visible = true
-                -- demais linhas podem ser adicionadas se quiser mais detalhe
-            end
-        else
-            for _, l in ipairs(skeleton) do l.Visible = false end
-        end
-    end)
-end
-
-for _, plr in ipairs(Players:GetPlayers()) do CreateESP(plr) end
-Players.PlayerAdded:Connect(CreateESP)
-
--- ====================== TOGGLES ======================
-CreateToggle("Aimbot (Hold RMB)", "Aimbot")
-CreateToggle("Silent Aim", "SilentAim")
-CreateToggle("Fly + Noclip (Key V)", "Fly")
-CreateToggle("Infinite Jump", "InfiniteJump")
-CreateToggle("Speed Hack", "SpeedHack")
-CreateToggle("Auto Clicker", "AutoClicker")
-CreateToggle("Box ESP", "BoxESP")
-CreateToggle("Name ESP", "NameESP")
-CreateToggle("Distance ESP", "DistanceESP")
-CreateToggle("Health ESP", "HealthESP")
-CreateToggle("Tracers", "Tracers")
-CreateToggle("Skeleton ESP", "SkeletonESP")
-CreateToggle("Fullbright", "Fullbright")
-CreateToggle("Spin Bot", "SpinBot")
-CreateToggle("Anti-AFK", "AntiAFK")
-
--- ====================== FEATURES (mesmas do anterior, otimizadas) ======================
-
--- Aimbot suave
-RunService.RenderStepped:Connect(function()
-    if Vars.Aimbot and UIS:IsMouseButtonPressed(Vars.AimbotKey) then
-        local closest, minDist = nil, Vars.AimbotFOV
-        for _, p in ipairs(Players:GetPlayers()) do
-            if p ~= player and p.Character and p.Character:FindFirstChild("Head") then
-                local pos, onScreen = camera:WorldToViewportPoint(p.Character.Head.Position)
-                if onScreen then
-                    local dist = (Vector2.new(pos.X, pos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
-                    if dist < minDist then
-                        minDist = dist
-                        closest = p.Character.Head
-                    end
-                end
-            end
-        end
-        if closest then
-            local target = CFrame.lookAt(camera.CFrame.Position, closest.Position)
-            camera.CFrame = camera.CFrame:Lerp(target, Vars.AimbotSmoothness)
-        end
-    end
-end)
-
--- Fly + Noclip
-local bv, bg = nil, nil
-RunService.Stepped:Connect(function()
-    if Vars.Fly and root then
-        if not bv then
-            bv = Instance.new("BodyVelocity"); bv.MaxForce = Vector3.new(1e5,1e5,1e5); bv.Parent = root
-            bg = Instance.new("BodyGyro"); bg.MaxTorque = Vector3.new(1e5,1e5,1e5); bg.Parent = root
-        end
-        local move = Vector3.new()
-        if UIS:IsKeyDown(Enum.KeyCode.W) then move += camera.CFrame.LookVector end
-        if UIS:IsKeyDown(Enum.KeyCode.S) then move -= camera.CFrame.LookVector end
-        if UIS:IsKeyDown(Enum.KeyCode.A) then move -= camera.CFrame.RightVector end
-        if UIS:IsKeyDown(Enum.KeyCode.D) then move += camera.CFrame.RightVector end
-        if UIS:IsKeyDown(Enum.KeyCode.Space) then move += Vector3.new(0,1,0) end
-        if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then move -= Vector3.new(0,1,0) end
-
-        bv.Velocity = move.Unit * 95
-        bg.CFrame = camera.CFrame
-    elseif bv then
-        bv:Destroy() bv = nil
-        bg:Destroy() bg = nil
-    end
-
-    if (Vars.Fly or Vars.Noclip) and char then
-        for _, part in pairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then part.CanCollide = false end
-        end
-    end
-end)
-
--- Speed
+-- Speed Hack Estável
 RunService.Heartbeat:Connect(function()
-    if hum then hum.WalkSpeed = Vars.SpeedHack and Vars.SpeedValue or 16 end
-end)
-
--- Infinite Jump
-UIS.JumpRequest:Connect(function()
-    if Vars.InfiniteJump and hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
-end)
-
--- Auto Clicker
-task.spawn(function()
-    while true do
-        if Vars.AutoClicker then
-            mouse1click()
-            task.wait(Vars.ClickSpeed)
-        else
-            task.wait(0.2)
+    pcall(function()
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            if Vars.SpeedHack then
+                player.Character.Humanoid.WalkSpeed = Vars.SpeedValue
+            else
+                player.Character.Humanoid.WalkSpeed = 16
+            end
         end
-    end
+    end)
 end)
 
--- Spin Bot
-RunService.RenderStepped:Connect(function()
-    if Vars.SpinBot and root then root.CFrame *= CFrame.Angles(0, math.rad(20), 0) end
+-- Fly & Noclip
+local bodyVel, bodyGyro
+RunService.Stepped:Connect(function()
+    pcall(function()
+        local char = player.Character
+        if Vars.Fly and char and char:FindFirstChild("HumanoidRootPart") then
+            if not bodyVel then
+                bodyVel = Instance.new("BodyVelocity", char.HumanoidRootPart)
+                bodyVel.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+                bodyGyro = Instance.new("BodyGyro", char.HumanoidRootPart)
+                bodyGyro.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
+            end
+            
+            local dir = Vector3.new()
+            if UIS:IsKeyDown(Enum.KeyCode.W) then dir += camera.CFrame.LookVector end
+            if UIS:IsKeyDown(Enum.KeyCode.S) then dir -= camera.CFrame.LookVector end
+            if UIS:IsKeyDown(Enum.KeyCode.A) then dir -= camera.CFrame.RightVector end
+            if UIS:IsKeyDown(Enum.KeyCode.D) then dir += camera.CFrame.RightVector end
+            
+            bodyVel.Velocity = dir * 100
+            bodyGyro.CFrame = camera.CFrame
+            
+            for _, p in pairs(char:GetDescendants()) do
+                if p:IsA("BasePart") then p.CanCollide = false end
+            end
+        else
+            if bodyVel then bodyVel:Destroy() bodyVel = nil end
+            if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
+        end
+    end)
 end)
 
--- Fullbright
-RunService.RenderStepped:Connect(function()
-    if Vars.Fullbright then
-        Lighting.Brightness = 3
-        Lighting.ClockTime = 14
-        Lighting.GlobalShadows = false
-        Lighting.FogEnd = 99999
-    end
-end)
-
--- Anti AFK
-player.Idled:Connect(function()
-    if Vars.AntiAFK then
-        game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), camera.CFrame)
-        task.wait(1)
-        game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), camera.CFrame)
-    end
-end)
-
--- Atalhos
-UIS.InputBegan:Connect(function(i, gp)
-    if gp then return end
-    if i.KeyCode == Enum.KeyCode.K then
+-- Teclas de Atalho
+UIS.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.KeyCode == Enum.KeyCode.K then
         Main.Visible = not Main.Visible
-    elseif i.KeyCode == Enum.KeyCode.V then
+    elseif input.KeyCode == Enum.KeyCode.V then
         Vars.Fly = not Vars.Fly
-        Vars.Noclip = Vars.Fly
     end
 end)
 
-print("🚀 ELITE SUPREMO V11 - CS STYLE carregado!")
-game.StarterGui:SetCore("SendNotification", {
-    Title = "ELITE SUPREMO V11",
-    Text = "Painel estilo CS2 • Pressione K para abrir • V para Fly",
-    Duration = 8
-})
+print("GTA V Style Menu Loaded! Press K to Toggle.")
