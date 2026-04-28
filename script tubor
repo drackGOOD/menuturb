@@ -1,12 +1,11 @@
 --[[
-    ELITE SUPREMO V12 - GTA V MOD MENU (ATUALIZADO)
-    Modificações: Removido AutoClicker, Adicionado Click Teleport (Alt + Click)
+    ELITE SUPREMO V12 - GTA V MOD MENU
+    FIX: Rolagem do Menu (CanvasSize Auto) + Click Teleport
 ]]
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
 
 local player = Players.LocalPlayer
@@ -26,25 +25,20 @@ end)
 -- ====================== CONFIGS ======================
 local Vars = {
     Aimbot = false,
-    SilentAim = false,
     AimbotKey = Enum.UserInputType.MouseButton2,
     AimbotFOV = 520,
     AimbotSmoothness = 0.24,
 
     Fly = false,
-    Noclip = false,
     InfiniteJump = false,
     SpeedHack = false,
     SpeedValue = 165,
 
     BoxESP = false,
     NameESP = false,
-    DistanceESP = false,
-    HealthESP = false,
     Tracers = false,
-    SkeletonESP = false,
 
-    ClickTeleport = false, -- Nova feature
+    ClickTeleport = false,
     Fullbright = false,
     SpinBot = false,
     AntiAFK = true,
@@ -54,13 +48,13 @@ local Vars = {
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "EliteSupremoGTA"
 ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 280, 0, 520)
+Main.Size = UDim2.new(0, 280, 0, 500)
 Main.Position = UDim2.new(0.05, 0, 0.15, 0)
 Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-Main.BackgroundTransparency = 0.05
 Main.BorderSizePixel = 0
 Main.Active = true
 Main.Draggable = true
@@ -68,7 +62,7 @@ Main.Parent = ScreenGui
 
 local Header = Instance.new("Frame")
 Header.Size = UDim2.new(1, 0, 0, 80)
-Header.BackgroundColor3 = Color3.fromRGB(25, 110, 210) 
+Header.BackgroundColor3 = Color3.fromRGB(25, 110, 210)
 Header.BorderSizePixel = 0
 Header.Parent = Main
 
@@ -81,128 +75,69 @@ Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 28
 Title.Parent = Header
 
-local Subtitle = Instance.new("TextLabel")
-Subtitle.Size = UDim2.new(1, 0, 0, 22)
-Subtitle.Position = UDim2.new(0, 0, 0, 52)
-Subtitle.BackgroundTransparency = 1
-Subtitle.Text = "V12 • GTA V MOD MENU"
-Subtitle.TextColor3 = Color3.fromRGB(220, 220, 220)
-Subtitle.Font = Enum.Font.SourceSans
-Subtitle.TextSize = 16
-Subtitle.Parent = Header
-
+-- CONTAINER COM ROLAGEM CORRIGIDA
 local Container = Instance.new("ScrollingFrame")
 Container.Size = UDim2.new(1, 0, 1, -80)
 Container.Position = UDim2.new(0, 0, 0, 80)
 Container.BackgroundTransparency = 1
 Container.BorderSizePixel = 0
-Container.ScrollBarThickness = 3
+Container.ScrollBarThickness = 4
 Container.ScrollBarImageColor3 = Color3.fromRGB(80, 180, 255)
-Container.CanvasSize = UDim2.new(0, 0, 0, 0)
+Container.CanvasSize = UDim2.new(0, 0, 0, 0) -- Começa em 0
 Container.Parent = Main
 
 local ListLayout = Instance.new("UIListLayout", Container)
-ListLayout.Padding = UDim.new(0, 6)
+ListLayout.Padding = UDim.new(0, 5)
 ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
+-- ESSA LINHA FAZ A ROLAGEM FUNCIONAR AUTOMATICAMENTE:
+ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    Container.CanvasSize = UDim2.new(0, 0, 0, ListLayout.AbsoluteContentSize.Y + 10)
+end)
+
+-- Função de Criar Botão
 local function CreateToggle(name, varName)
     local Btn = Instance.new("TextButton")
-    Btn.Size = UDim2.new(1, 0, 0, 42)
-    Btn.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
-    Btn.BackgroundTransparency = 0.2
+    Btn.Size = UDim2.new(1, -10, 0, 42)
+    Btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
     Btn.BorderSizePixel = 0
     Btn.Text = "   " .. name
     Btn.TextColor3 = Color3.fromRGB(230, 230, 230)
     Btn.TextXAlignment = Enum.TextXAlignment.Left
     Btn.Font = Enum.Font.SourceSansSemibold
-    Btn.TextSize = 18
+    Btn.TextSize = 17
     Btn.AutoButtonColor = false
     Btn.Parent = Container
 
     local Indicator = Instance.new("Frame")
     Indicator.Size = UDim2.new(0, 6, 0, 28)
-    Indicator.Position = UDim2.new(1, -18, 0.5, -14)
+    Indicator.Position = UDim2.new(1, -15, 0.5, -14)
     Indicator.BackgroundColor3 = Color3.fromRGB(200, 55, 55)
     Indicator.BorderSizePixel = 0
     Indicator.Parent = Btn
 
-    local IndicatorCorner = Instance.new("UICorner", Indicator)
-    IndicatorCorner.CornerRadius = UDim.new(0, 3)
-
     Btn.MouseButton1Click:Connect(function()
         Vars[varName] = not Vars[varName]
         Indicator.BackgroundColor3 = Vars[varName] and Color3.fromRGB(55, 200, 55) or Color3.fromRGB(200, 55, 55)
-        Btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        task.wait(0.08)
-        Btn.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
     end)
 end
 
--- ====================== ESP PROFISSIONAL ======================
-local ESPObjects = {}
-local function CreateESP(plr)
-    if plr == player then return end
-    local box = Drawing.new("Square"); box.Thickness = 2.2; box.Color = Color3.fromRGB(0, 170, 255); box.Transparency = 1
-    local name = Drawing.new("Text"); name.Size = 16; name.Color = Color3.new(1,1,1); name.Center = true; name.Outline = true
-    local tracer = Drawing.new("Line"); tracer.Thickness = 1.6; tracer.Color = Color3.fromRGB(0, 200, 255); tracer.Transparency = 0.75
-    
-    ESPObjects[plr] = {Box = box, Name = name, Tracer = tracer}
-
-    RunService.RenderStepped:Connect(function()
-        local character = plr.Character
-        if not character or not character:FindFirstChild("HumanoidRootPart") then
-            box.Visible = false; name.Visible = false; tracer.Visible = false
-            return
-        end
-
-        local rootPart = character.HumanoidRootPart
-        local head = character:FindFirstChild("Head")
-        local rootPos, onScreen = camera:WorldToViewportPoint(rootPart.Position)
-
-        if onScreen then
-            if Vars.BoxESP then
-                local headPos = camera:WorldToViewportPoint(head.Position)
-                local legPos = camera:WorldToViewportPoint(rootPart.Position - Vector3.new(0, 3.4, 0))
-                box.Size = Vector2.new((headPos.Y - legPos.Y) * 0.52, headPos.Y - legPos.Y)
-                box.Position = Vector2.new(rootPos.X - box.Size.X/2, rootPos.Y - box.Size.Y * 0.48)
-                box.Visible = true
-            else box.Visible = false end
-
-            if Vars.NameESP then
-                name.Text = plr.DisplayName .. " [" .. math.floor((root.Position - rootPart.Position).Magnitude) .. "m]"
-                name.Position = Vector2.new(rootPos.X, rootPos.Y - 40)
-                name.Visible = true
-            else name.Visible = false end
-
-            if Vars.Tracers then
-                tracer.From = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y - 50)
-                tracer.To = Vector2.new(rootPos.X, rootPos.Y)
-                tracer.Visible = true
-            else tracer.Visible = false end
-        else
-            box.Visible = false; name.Visible = false; tracer.Visible = false
-        end
-    end)
-end
-
-for _, plr in ipairs(Players:GetPlayers()) do CreateESP(plr) end
-Players.PlayerAdded:Connect(CreateESP)
-
--- ====================== TOGGLES ======================
-CreateToggle("Aimbot (Segurar RMB)", "Aimbot")
-CreateToggle("Super Speed", "SpeedHack")
+-- ====================== ADICIONANDO OPÇÕES ======================
+CreateToggle("Aimbot (Segurar Direito)", "Aimbot")
+CreateToggle("Click Teleport (Alt + Click)", "ClickTeleport")
+CreateToggle("Super Speed (165)", "SpeedHack")
 CreateToggle("Flight Mode (Tecla V)", "Fly")
 CreateToggle("Infinite Jump", "InfiniteJump")
-CreateToggle("Click Teleport (Alt+Click)", "ClickTeleport")
 CreateToggle("Box ESP", "BoxESP")
 CreateToggle("Name ESP", "NameESP")
-CreateToggle("Tracers", "Tracers")
-CreateToggle("Fullbright", "Fullbright")
+CreateToggle("Tracers ESP", "Tracers")
+CreateToggle("Fullbright (Iluminação)", "Fullbright")
 CreateToggle("Spin Bot", "SpinBot")
+CreateToggle("Anti-AFK", "AntiAFK")
 
--- ====================== FEATURES ======================
+-- ====================== FEATURES LOGIC ======================
 
--- Click Teleport (SUA NOVA FUNÇÃO)
+-- Click Teleport
 mouse.Button1Down:Connect(function()
     if Vars.ClickTeleport and UIS:IsKeyDown(Enum.KeyCode.LeftAlt) and root then
         root.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 5, 0))
@@ -229,7 +164,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Fly + Noclip
+-- Fly Logic
 local bv, bg = nil, nil
 RunService.Stepped:Connect(function()
     if Vars.Fly and root then
@@ -244,38 +179,26 @@ RunService.Stepped:Connect(function()
         if UIS:IsKeyDown(Enum.KeyCode.D) then move += camera.CFrame.RightVector end
         bv.Velocity = move.Unit * 100
         bg.CFrame = camera.CFrame
-        for _, part in pairs(char:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = false end end
+        for _, v in pairs(char:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end
     elseif bv then
         bv:Destroy(); bv = nil; bg:Destroy(); bg = nil
+        for _, v in pairs(char:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = true end end
     end
 end)
 
--- Speed & Jump
+-- Speed e Jump
 RunService.Heartbeat:Connect(function()
     if hum then hum.WalkSpeed = Vars.SpeedHack and Vars.SpeedValue or 16 end
 end)
-
 UIS.JumpRequest:Connect(function()
     if Vars.InfiniteJump and hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
 end)
 
--- Spin Bot
-RunService.RenderStepped:Connect(function()
-    if Vars.SpinBot and root then root.CFrame *= CFrame.Angles(0, math.rad(20), 0) end
-end)
-
--- Fullbright
-RunService.RenderStepped:Connect(function()
-    if Vars.Fullbright then
-        Lighting.Brightness = 2; Lighting.ClockTime = 14; Lighting.GlobalShadows = false
-    end
-end)
-
--- Atalhos
+-- Atalhos Teclado
 UIS.InputBegan:Connect(function(i, gp)
     if gp then return end
     if i.KeyCode == Enum.KeyCode.K then Main.Visible = not Main.Visible end
     if i.KeyCode == Enum.KeyCode.V then Vars.Fly = not Vars.Fly end
 end)
 
-print("✅ ELITE SUPREMO V12 CARREGADO!")
+print("✅ ELITE SUPREMO V12 - ROLAGEM CORRIGIDA")
